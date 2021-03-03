@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="AndroidPdfView">
+        <attr name="apdf_page_margin" format="dimension" />
+        <attr name="apdf_page_boundaries" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="AndroidPdfSeekBar">
+        <attr name="aps_orientation">
+            <enum name="horizontal" value="0-" />
+            <enum name="vertical" value="1" />
+        </attr>
+
+        <attr name="aps_bar_color" format="color" />
+        <attr name="aps_bar_height" format="dimension" />
+
+        <attr name="aps_process_color" format="color" />
+        <attr name="aps_process_height" format="dimension" />
+
+        <attr name="aps_thumb_width" format="dimension" />
+        <attr name="aps_thumb_height" format="dimension" />
+        <attr name="aps_thumb_background" format="reference" />
+
+        <attr name="aps_indicator_mode">
+            <enum name="hidden" value="-1" />
+            <enum name="thumb_inside" value="0" />
+            <enum name="thumb_above" value="1" />
+            <enum name="thumb_below" value="2" />
+        </attr>
+        <attr name="aps_indicator_total_page" format="boolean" />
+        <attr name="aps_indicator_text_size" format="dimension" />
+        <attr name="aps_indicator_text_font" format="reference" />
+        <attr name="aps_indicator_text_color" format="color" />
+
+        <attr name="aps_indicator_layout_color" format="color" />
+        <attr name="aps_indicator_layout_border_color" format="color" />
+        <attr name="aps_indicator_layout_size" format="dimension" />
+
+    </declare-styleable>
+
+</resources>

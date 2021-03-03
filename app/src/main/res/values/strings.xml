@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">PdfReaderDemo</string>
+    <string name="choose_pdf">Choose Pdf</string>
+    <string name="orientation">Orientation</string>
+</resources>
