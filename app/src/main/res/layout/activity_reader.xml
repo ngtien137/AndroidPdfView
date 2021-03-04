@@ -34,4 +34,14 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/appBar" />
 
+    <com.lhd.demo.pdfview.AndroidPdfSeekBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        app:aps_orientation="horizontal"
+        app:aps_current_page="20"
+        app:layout_constraintStart_toStartOf="parent"
+        app:aps_thumb="@drawable/default_thumb_circle"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

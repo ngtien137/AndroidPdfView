@@ -8,25 +8,29 @@
 
     <declare-styleable name="AndroidPdfSeekBar">
         <attr name="aps_orientation">
-            <enum name="horizontal" value="0-" />
+            <enum name="horizontal" value="0" />
             <enum name="vertical" value="1" />
         </attr>
 
         <attr name="aps_bar_color" format="color" />
         <attr name="aps_bar_height" format="dimension" />
+        <attr name="aps_bar_cap">
+            <enum name="butt" value="0" />
+            <enum name="round" value="1" />
+        </attr>
 
-        <attr name="aps_process_color" format="color" />
-        <attr name="aps_process_height" format="dimension" />
+        <attr name="aps_progress_color" format="color" />
+        <attr name="aps_progress_height" format="dimension" />
 
         <attr name="aps_thumb_width" format="dimension" />
         <attr name="aps_thumb_height" format="dimension" />
-        <attr name="aps_thumb_background" format="reference" />
+        <attr name="aps_thumb" format="reference"/>
 
         <attr name="aps_indicator_mode">
             <enum name="hidden" value="-1" />
-            <enum name="thumb_inside" value="0" />
-            <enum name="thumb_above" value="1" />
-            <enum name="thumb_below" value="2" />
+            <enum name="inside_thumb" value="0" />
+            <enum name="above_thumb" value="1" />
+            <enum name="below_thumb" value="2" />
         </attr>
         <attr name="aps_indicator_total_page" format="boolean" />
         <attr name="aps_indicator_text_size" format="dimension" />
@@ -36,6 +40,9 @@
         <attr name="aps_indicator_layout_color" format="color" />
         <attr name="aps_indicator_layout_border_color" format="color" />
         <attr name="aps_indicator_layout_size" format="dimension" />
+
+        <attr name="aps_current_page" format="integer" />
+        <attr name="aps_total_page" format="integer" />
 
     </declare-styleable>
 
