@@ -37,6 +37,8 @@
         <attr name="aps_indicator_text_font" format="reference" />
         <attr name="aps_indicator_text_color" format="color" />
 
+        <attr name="aps_page_thumbnail_size" format="dimension"/>
+
         <attr name="aps_indicator_layout_color" format="color" />
         <attr name="aps_indicator_layout_border_color" format="color" />
         <attr name="aps_indicator_layout_size" format="dimension" />

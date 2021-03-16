@@ -32,4 +32,22 @@ object ViewUtils {
         this.right = right.toFloat()
         this.bottom = bottom.toFloat()
     }
+
+    fun RectF.setCenter(centerX: Number, centerY: Number, width: Number, height: Number) {
+        set(
+            centerX.toFloat() - width.toFloat() / 2,
+            centerY.toFloat() - height.toFloat() / 2,
+            centerX.toFloat() + width.toFloat() / 2,
+            centerY.toFloat() + height.toFloat() / 2
+        )
+    }
+
+    fun Rect.setCenter(centerX: Number, centerY: Number, width: Number, height: Number) {
+        set(
+            centerX.toInt() - width.toInt() / 2,
+            centerY.toInt() - height.toInt() / 2,
+            centerX.toInt() + width.toInt() / 2,
+            centerY.toInt() + height.toInt() / 2
+        )
+    }
 }
