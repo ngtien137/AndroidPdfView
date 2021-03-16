@@ -9,7 +9,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import androidx.core.graphics.drawable.toDrawable
-import com.lhd.demo.PdfWorkspace
 import com.lhd.demo.pdfview.utils.ViewUtils.dpToPx
 import com.lhd.demo.pdfview.utils.ViewUtils.set
 import kotlin.math.abs
@@ -42,7 +41,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
      * Page drawable
      */
 
-    private var pageThumbnail: Drawable? = null
+    var pageThumbnail: Drawable? = null
     private val rectPageThumbnail = Rect()
     private var pageThumbnailSize = 0
 
@@ -248,7 +247,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
         }
     }
 
-    private fun getPdfWorkspace() = if (parent is PdfWorkspace) parent as PdfWorkspace else null
+    private fun getPdfWorkspace() = if (parent is AndroidPdfWorkspace) parent as AndroidPdfWorkspace else null
 
     private fun drawPageThumbnail() {
         val pageThumbWidth = pageThumbnailSize * 2

@@ -1,4 +1,4 @@
-package com.lhd.demo
+package com.lhd.demo.pdfview
 
 import android.content.Context
 import android.graphics.Canvas
@@ -6,13 +6,10 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.children
-import com.lhd.demo.pdfview.AndroidPdfSeekBar
 
-class PdfWorkspace @JvmOverloads constructor(
+class AndroidPdfWorkspace @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
-
-    var pageThumbnail: Drawable? = null
 
     init {
 
@@ -30,7 +27,7 @@ class PdfWorkspace @JvmOverloads constructor(
     override fun dispatchDraw(canvas: Canvas?) {
         super.dispatchDraw(canvas)
         canvas?.let {
-            pageThumbnail?.draw(canvas)
+            getPdfSeekBar()?.pageThumbnail?.draw(canvas)
         }
     }
 
