@@ -38,14 +38,6 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
     private val rectThumb = Rect()
 
     /**
-     * Page drawable
-     */
-
-    var pageThumbnail: Drawable? = null
-    private val rectPageThumbnail = Rect()
-    private var pageThumbnailSize = 0
-
-    /**
      * View Value
      */
 
@@ -126,9 +118,6 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
             thumbHeight =
                 ta.getDimension(R.styleable.AndroidPdfSeekBar_aps_thumb_width, dpToPx(20f))
             thumbDrawable = ta.getDrawable(R.styleable.AndroidPdfSeekBar_aps_thumb)
-
-            pageThumbnailSize =
-                ta.getDimensionPixelSize(R.styleable.AndroidPdfSeekBar_aps_page_thumbnail_size, 0)
 
             currentPage = ta.getInteger(R.styleable.AndroidPdfSeekBar_aps_current_page, 0).toFloat()
             totalPage = ta.getInteger(R.styleable.AndroidPdfSeekBar_aps_total_page, 100).toFloat()
@@ -247,44 +236,11 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
         }
     }
 
-    private fun getPdfWorkspace() = if (parent is AndroidPdfWorkspace) parent as AndroidPdfWorkspace else null
+    private fun getPdfWorkspace() =
+        if (parent is AndroidPdfWorkspace) parent as AndroidPdfWorkspace else null
 
-    private fun drawPageThumbnail() {
-        val pageThumbWidth = pageThumbnailSize * 2
-        val pageThumbHeight = pageThumbnailSize
-        val pageThumbBottom = rectThumb.top
-        val bitmap =
-            Bitmap.createBitmap(pageThumbWidth, pageThumbHeight, Bitmap.Config.RGB_565)
-        val c = Canvas(bitmap)
-        c.drawColor(Color.RED)
-        thumbDrawable = bitmap.toDrawable(resources)
-        thumbDrawable?.bounds = Rect().also {
-            it.set(
-                rectThumb.centerX() - pageThumbWidth / 2f,
-                pageThumbBottom - pageThumbHeight,
-                rectThumb.centerX() + pageThumbWidth / 2f,
-                pageThumbBottom
-            )
-        }
-        getPdfWorkspace()?.invalidate()
-    }
-
-    private fun clearPageThumbnail() {
-        thumbDrawable = null
-        getPdfWorkspace()?.invalidate()
-    }
-
-    private fun getRelativeLeft(myView: View): Int {
-        return if (myView.parent === myView.rootView) myView.left else myView.left + getRelativeLeft(
-            myView.parent as View
-        )
-    }
-
-    private fun getRelativeTop(myView: View): Int {
-        return if (myView.parent === myView.rootView) myView.top else myView.top + getRelativeTop(
-            myView.parent as View
-        )
-    }
+    fun getCenterThumbX() = rectThumb.centerX()
+    fun getCenterThumbY() = rectThumb.centerY()
 
     /**
      * Calculate
@@ -337,7 +293,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
                 pointDown.set(event.x, event.y)
                 validateThumbWithProgress()
                 postInvalidate()
-                drawPageThumbnail()
+                getPdfWorkspace()?.showPageThumbnail(currentPage.toInt())
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
@@ -346,7 +302,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
                     moveThumb(disX)
                     pointDown.set(event.x, event.y)
                     postInvalidate()
-                    drawPageThumbnail()
+                    getPdfWorkspace()?.showPageThumbnail(currentPage.toInt())
                     true
                 } else {
                     if (abs(disX) >= touchSlop) {
@@ -359,7 +315,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
                 }
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-
+                getPdfWorkspace()?.clearPageThumbnail()
             }
         }
         return super.onTouchEvent(event)
@@ -377,6 +333,16 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
         rectThumb.right = (newCenterX + thumbWidth / 2f).roundToInt()
         currentPage = rectThumb.centerX().PixelToProgress()
     }
+
+    /**
+     * Properties action
+     */
+
+    fun getOrientation() = orientation
+
+    /**
+     * Child properties
+     */
 
     enum class Orientation(val value: Int) {
         HORIZONTAL(0), VERTICAL(1)

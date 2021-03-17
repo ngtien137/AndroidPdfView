@@ -1,6 +1,8 @@
 package com.lhd.demo.pdfview
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.util.AttributeSet
@@ -41,6 +43,8 @@ class AndroidPdfView @JvmOverloads constructor(
 
     private lateinit var pagerAdapter: PagerAdapter
 
+    private var pdfPath = ""
+
     private var currentPageIndex = 0
 
     private val coroutineScope by lazy {
@@ -72,6 +76,7 @@ class AndroidPdfView @JvmOverloads constructor(
     }
 
     fun load(path: String, fragmentManager: FragmentManager, lifecycle: Lifecycle) {
+        this.pdfPath = path
         val file = File(path)
         if (!file.exists()) {
             throw FileNotFoundException("File [$path] is not exists")
@@ -126,6 +131,18 @@ class AndroidPdfView @JvmOverloads constructor(
         }
         setBoundariesPadding(pageData.pageBoundaries)
         pagerAdapter.notifyDataSetChanged()
+    }
+
+    fun getPageThumbnailBitmap(index: Int): Bitmap? {
+        val pdfRenderer = PdfUtils.loadPdfRendererFromPath(pdfPath)
+        val page = pdfRenderer.openPage(index)
+        val bitmap =
+            Bitmap.createBitmap(page.width, page.height, Bitmap.Config.RGB_565)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(Color.WHITE)
+        page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+        page.close()
+        return bitmap
     }
 
     enum class Orientation {
