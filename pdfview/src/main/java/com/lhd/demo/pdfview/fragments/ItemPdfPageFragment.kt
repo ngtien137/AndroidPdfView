@@ -83,8 +83,8 @@ class ItemPdfPageFragment : Fragment() {
                         topMargin = 0
                         bottomMargin = 0
                     } else {
-                        topMargin = pageData.pageMargin
-                        bottomMargin = topMargin
+                        topMargin = 0//pageData.pageMargin
+                        bottomMargin = 0//topMargin
                         marginStart = 0
                         marginEnd = 0
                     }
@@ -99,21 +99,28 @@ class ItemPdfPageFragment : Fragment() {
                 pdfRenderer = PdfUtils.loadPdfRendererFromPath(pdfPath)
             }
             val index = listFragments.indexOf(this@ItemPdfPageFragment)
-            val page = pdfRenderer.openPage(index)
-            bitmap =
-                Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
-            canvas.drawColor(Color.WHITE)
-            page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-            page.close()
-            withContext(Dispatchers.Main) {
-                requireView().findViewById<PhotoView>(R.id.imgPdf).setImageBitmap(bitmap)
+            try {
+                //Nếu try catch cái này có thể gây ra lỗi một trang nó đó bị trắng vì ko load được (Trùng renderer - page not close)
+                val page = pdfRenderer.openPage(index)
+                bitmap =
+                    Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(bitmap)
+                canvas.drawColor(Color.WHITE)
+                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                page.close()
+                withContext(Dispatchers.Main) {
+                    requireView().findViewById<PhotoView>(R.id.imgPdf).setImageBitmap(bitmap)
+                }
+            } catch (e: IllegalStateException) {
+
             }
+
         }
     }
 
     override fun onDestroyView() {
-        bitmap.recycle()
+        if (::bitmap.isInitialized)
+            bitmap.recycle()
         super.onDestroyView()
     }
 

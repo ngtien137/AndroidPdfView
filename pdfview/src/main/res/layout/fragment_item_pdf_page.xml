@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="#0000"
+    android:background="#0f00"
     tools:background="#4000"
     tools:context=".fragments.ItemPdfPageFragment">
 

@@ -4,6 +4,8 @@
     <declare-styleable name="AndroidPdfView">
         <attr name="apdf_page_margin" format="dimension" />
         <attr name="apdf_page_boundaries" format="dimension" />
+
+        <attr name="apdf_vertical_page_extra_margin_horizontal" format="dimension" />
     </declare-styleable>
 
     <declare-styleable name="AndroidPdfSeekBar">
@@ -24,7 +26,7 @@
 
         <attr name="aps_thumb_width" format="dimension" />
         <attr name="aps_thumb_height" format="dimension" />
-        <attr name="aps_thumb" format="reference"/>
+        <attr name="aps_thumb" format="reference" />
 
         <attr name="aps_indicator_mode">
             <enum name="hidden" value="-1" />

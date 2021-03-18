@@ -41,8 +41,10 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
      * View Value
      */
 
-    private var currentPage = 0f
-    private var totalPage = 100f
+    var currentPage = 0f
+        private set
+    var totalPage = 100f
+        private set
 
     /**
      * Action Value
@@ -57,6 +59,8 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
     }
     var isThumbMoving = false
         private set
+
+    var listener: Listener? = null
 
     init {
         attrs?.let {
@@ -85,7 +89,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
                 }
             paintBar.color = ta.getColor(R.styleable.AndroidPdfSeekBar_aps_bar_color, Color.GRAY)
             paintBar.strokeWidth =
-                ta.getDimension(R.styleable.AndroidPdfSeekBar_aps_bar_height, dpToPx(10f))
+                ta.getDimension(R.styleable.AndroidPdfSeekBar_aps_bar_height, dpToPx(6f))
             paintBar.strokeCap = Paint.Cap.ROUND
 
             paintProgress.color =
@@ -236,8 +240,11 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
         }
     }
 
-    private fun getPdfWorkspace() =
-        if (parent is AndroidPdfWorkspace) parent as AndroidPdfWorkspace else null
+    private fun getPdfView(): AndroidPdfView? {
+        val pdfView = parent.parent
+        return if (pdfView is AndroidPdfView) pdfView else null
+    }
+
 
     fun getCenterThumbX() = rectThumb.centerX()
     fun getCenterThumbY() = rectThumb.centerY()
@@ -293,7 +300,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
                 pointDown.set(event.x, event.y)
                 validateThumbWithProgress()
                 postInvalidate()
-                getPdfWorkspace()?.showPageThumbnail(currentPage.toInt())
+                getPdfView()?.showPageThumbnail(currentPage.toInt())
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
@@ -302,7 +309,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
                     moveThumb(disX)
                     pointDown.set(event.x, event.y)
                     postInvalidate()
-                    getPdfWorkspace()?.showPageThumbnail(currentPage.toInt())
+                    getPdfView()?.showPageThumbnail(currentPage.toInt())
                     true
                 } else {
                     if (abs(disX) >= touchSlop) {
@@ -315,7 +322,8 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
                 }
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                getPdfWorkspace()?.clearPageThumbnail()
+                getPdfView()?.clearPageThumbnail()
+                listener?.onPageSelectedChanged(currentPage.toInt(), true)
             }
         }
         return super.onTouchEvent(event)
@@ -340,6 +348,19 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
 
     fun getOrientation() = orientation
 
+    fun setTotalPage(totalPage: Int) {
+        this.totalPage = totalPage.toFloat()
+        currentPage = 0f
+        postInvalidate()
+    }
+
+    fun setCurrentPage(pageIndex: Int) {
+        val index = if (pageIndex < 0) 0f else if (pageIndex > totalPage) totalPage else pageIndex
+        this.currentPage = index.toFloat()
+        validateThumbWithProgress()
+        postInvalidate()
+    }
+
     /**
      * Child properties
      */
@@ -357,7 +378,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
     }
 
     interface Listener {
-
+        fun onPageSelectedChanged(pageIndex: Int, isSelectedByTouch: Boolean)
     }
 
 }
