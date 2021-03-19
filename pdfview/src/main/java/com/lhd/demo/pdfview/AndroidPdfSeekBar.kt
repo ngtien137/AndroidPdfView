@@ -4,12 +4,14 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
+import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import androidx.core.graphics.drawable.toDrawable
 import com.lhd.demo.pdfview.utils.ViewUtils.dpToPx
+import com.lhd.demo.pdfview.utils.ViewUtils.getAppTypeFace
 import com.lhd.demo.pdfview.utils.ViewUtils.set
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -22,7 +24,6 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
     private val paintProgress = Paint(Paint.ANTI_ALIAS_FLAG)
 
     private var barCap: BarCap = BarCap.ROUND
-    private var indicatorMode = IndicatorMode.INSIDE_THUMB
     private var orientation = Orientation.HORIZONTAL
 
     private val rectView = RectF()
@@ -37,6 +38,13 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
     private var thumbDrawable: Drawable? = null
     private val rectThumb = Rect()
     private var isEnableThumbShadow = false
+
+    /**
+     * Indicator
+     */
+    private var indicatorMode = IndicatorMode.INSIDE_THUMB
+    private var rectTextIndicator = RectF()
+    private var paintText = TextPaint(Paint.ANTI_ALIAS_FLAG)
 
     /**
      * View Value
@@ -102,8 +110,6 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
                 )
             paintProgress.strokeCap = Paint.Cap.ROUND
 
-
-
             indicatorMode = when (ta.getInt(
                 R.styleable.AndroidPdfSeekBar_aps_indicator_mode,
                 IndicatorMode.INSIDE_THUMB.value
@@ -136,7 +142,17 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
             paintThumb.setShadowLayer(shadowRadius, 0f, 0f, shadowColor)
             paintThumb.color = shadowColor
 
-            currentPage = ta.getInteger(R.styleable.AndroidPdfSeekBar_aps_current_page, 0).toFloat()
+            paintText.textSize =
+                ta.getDimension(R.styleable.AndroidPdfSeekBar_aps_indicator_text_size, 10f)
+            val fontId = ta.getResourceId(R.styleable.AndroidPdfSeekBar_aps_indicator_text_font, -1)
+            if (fontId != -1) {
+                paintText.typeface = context.getAppTypeFace(fontId)
+            }
+            paintText.color =
+                ta.getColor(R.styleable.AndroidPdfSeekBar_aps_indicator_text_color, Color.WHITE)
+
+            currentPage =
+                ta.getInteger(R.styleable.AndroidPdfSeekBar_aps_current_page, 0).toFloat()
             totalPage = ta.getInteger(R.styleable.AndroidPdfSeekBar_aps_total_page, 100).toFloat()
 
             ta.recycle()
