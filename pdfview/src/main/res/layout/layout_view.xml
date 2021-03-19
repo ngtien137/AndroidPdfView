@@ -37,6 +37,8 @@
         android:id="@+id/pdf_seek_bar_horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="14dp"
         android:layout_marginBottom="12dp"
         app:aps_bar_color="@color/aps_seek_bar_background"
         app:aps_bar_height="6dp"
