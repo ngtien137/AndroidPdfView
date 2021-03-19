@@ -1,12 +1,15 @@
 package com.lhd.demo.pdfview
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.graphics.pdf.PdfRenderer
+import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
-import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.drawable.toDrawable
@@ -20,11 +23,15 @@ import com.lhd.demo.pdfview.fragments.ItemPdfPageFragment
 import com.lhd.demo.pdfview.model.PageData
 import com.lhd.demo.pdfview.utils.PdfUtils
 import com.lhd.demo.pdfview.utils.ViewUtils.set
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileNotFoundException
 import kotlin.math.roundToInt
 
+@SuppressLint("ClickableViewAccessibility")
 class AndroidPdfView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), AndroidPdfSeekBar.Listener {
@@ -78,6 +85,20 @@ class AndroidPdfView @JvmOverloads constructor(
 
     private var thumbnailEnable = true
 
+    private var seekBarMode = SeekBarMode.SHOW_WHEN_SCROLL
+
+    private var handlerVisibleSeekBar: Handler? = null
+
+    private val runnableSeekBar = Runnable {
+        getVerticalPdfSeekBar()?.visibility = View.GONE
+        getHorizontalPdfSeekBar()?.visibility = View.GONE
+        needShowAfterScroll = false
+    }
+    private var needShowAfterScroll = false
+    private var isTouchSeekBar = false
+
+    private val TIME_HIDE_SEEKBAR_AFTER_SCROLLING = 3000L
+
     //endregion
 
     init {
@@ -99,11 +120,34 @@ class AndroidPdfView @JvmOverloads constructor(
             thumbnailShadowColor =
                 ta.getColor(R.styleable.AndroidPdfView_apdf_thumbnail_shadow_color, Color.GRAY)
 
+            seekBarMode = when (ta.getInt(
+                R.styleable.AndroidPdfView_apdf_seekbar_visible_mode,
+                SeekBarMode.SHOW_WHEN_SCROLL.value
+            )) {
+                SeekBarMode.HIDDEN.value -> {
+                    SeekBarMode.HIDDEN
+                }
+                SeekBarMode.VISIBLE.value -> {
+                    SeekBarMode.VISIBLE
+                }
+                else -> {
+                    SeekBarMode.SHOW_WHEN_SCROLL
+                }
+            }
+
             ta.recycle()
         }
         pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
+                /**
+                 * Nhảy vào đây khi action up seekbar hoặc vuốt page
+                 * Khi nhảy vào đây thì cần hiển thị seekbar lên và chạy handler ẩn seekbar
+                 * nếu seekbar đang ở mode chỉ hiển thị khi scroll
+                 */
                 currentPageIndex = position
+                needShowAfterScroll = true
+                validateOrientationWithSeekBar()
+                startHandlerSeekBar()
                 getVerticalPdfSeekBar()?.setCurrentPage(currentPageIndex)
                 getHorizontalPdfSeekBar()?.setCurrentPage(currentPageIndex)
             }
@@ -124,10 +168,16 @@ class AndroidPdfView @JvmOverloads constructor(
     private fun validateOrientationWithSeekBar() {
         if (getPageOrientation() == Orientation.VERTICAL) {
             getHorizontalPdfSeekBar()?.visibility = View.GONE
-            getVerticalPdfSeekBar()?.visibility = View.VISIBLE
+            if ((seekBarMode == SeekBarMode.SHOW_WHEN_SCROLL && needShowAfterScroll) || seekBarMode == SeekBarMode.VISIBLE)
+                getVerticalPdfSeekBar()?.visibility = View.VISIBLE
+            else
+                getVerticalPdfSeekBar()?.visibility = View.GONE
         } else {
             getVerticalPdfSeekBar()?.visibility = View.GONE
-            getHorizontalPdfSeekBar()?.visibility = View.VISIBLE
+            if ((seekBarMode == SeekBarMode.SHOW_WHEN_SCROLL && needShowAfterScroll) || seekBarMode == SeekBarMode.VISIBLE)
+                getHorizontalPdfSeekBar()?.visibility = View.VISIBLE
+            else
+                getHorizontalPdfSeekBar()?.visibility = View.GONE
         }
     }
 
@@ -161,8 +211,7 @@ class AndroidPdfView @JvmOverloads constructor(
             }
             withContext(Dispatchers.Main) {
                 getHorizontalPdfSeekBar()?.setTotalPage(pageCount)
-                getVerticalPdfSeekBar()
-                    ?.setTotalPage(pageCount)
+                getVerticalPdfSeekBar()?.setTotalPage(pageCount)
                 pager.offscreenPageLimit = PAGE_OFFSET_LIMIT - 2
                 pagerAdapter = PagerAdapter(listPagerFragments, fragmentManager, lifecycle)
                 pager.adapter = pagerAdapter
@@ -343,17 +392,43 @@ class AndroidPdfView @JvmOverloads constructor(
     //region action
 
     fun showPageThumbnail(index: Int) {
+        /**
+         * Show thumbnail and validate seekbar when touch seekbar
+         */
+        isTouchSeekBar = true
+        clearHandlerSeekBar()
+        validateOrientationWithSeekBar()
         pageThumbnailBitmap = getPageThumbnailBitmap(index)
         pageThumbnail = pageThumbnailBitmap?.toDrawable(resources)
         postInvalidate()
     }
 
     fun clearPageThumbnail() {
+        /**
+         * Show thumbnail and validate seekbar when release seekbar
+         */
+        isTouchSeekBar = false
+        startHandlerSeekBar()
         pageThumbnail = null
         pageThumbnailBitmap?.recycle()
         pageThumbnailBitmap = null
         thumbnailIndex = -1
         invalidate()
+    }
+
+    private fun startHandlerSeekBar() {
+        clearHandlerSeekBar()
+        if (seekBarMode == SeekBarMode.SHOW_WHEN_SCROLL) {
+            handlerVisibleSeekBar = Handler(Looper.getMainLooper())
+            handlerVisibleSeekBar?.postDelayed(runnableSeekBar, TIME_HIDE_SEEKBAR_AFTER_SCROLLING)
+        }
+    }
+
+    private fun clearHandlerSeekBar() {
+        if (seekBarMode == SeekBarMode.SHOW_WHEN_SCROLL) {
+            handlerVisibleSeekBar?.removeCallbacks(runnableSeekBar)
+            handlerVisibleSeekBar = null
+        }
     }
 
     //endregion
@@ -362,6 +437,10 @@ class AndroidPdfView @JvmOverloads constructor(
 
     enum class Orientation {
         VERTICAL, HORIZONTAL
+    }
+
+    enum class SeekBarMode(val value: Int) {
+        HIDDEN(-1), VISIBLE(0), SHOW_WHEN_SCROLL(1)
     }
 
     //endregion

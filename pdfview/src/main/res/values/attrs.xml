@@ -4,10 +4,16 @@
     <declare-styleable name="AndroidPdfView">
         <attr name="apdf_page_margin" format="dimension" />
         <attr name="apdf_page_boundaries" format="dimension" />
-
         <attr name="apdf_vertical_page_extra_margin_horizontal" format="dimension" />
-        <attr name="apdf_thumbnail_shadow_color" format="color" />
         <attr name="apdf_horizontal_divider_for_page" format="boolean" />
+
+        <attr name="apdf_thumbnail_shadow_color" format="color" />
+
+        <attr name="apdf_seekbar_visible_mode">
+            <enum name="hidden" value="-1" />
+            <enum name="visible" value="0" />
+            <enum name="visible_when_scroll" value="1" />
+        </attr>
     </declare-styleable>
 
     <declare-styleable name="AndroidPdfSeekBar">
