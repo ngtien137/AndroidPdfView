@@ -6,6 +6,8 @@
         <attr name="apdf_page_boundaries" format="dimension" />
 
         <attr name="apdf_vertical_page_extra_margin_horizontal" format="dimension" />
+        <attr name="apdf_thumbnail_shadow_color" format="color" />
+        <attr name="apdf_horizontal_divider_for_page" format="boolean"/>
     </declare-styleable>
 
     <declare-styleable name="AndroidPdfSeekBar">
@@ -45,6 +47,10 @@
 
         <attr name="aps_current_page" format="integer" />
         <attr name="aps_total_page" format="integer" />
+
+        <attr name="aps_shadow_color" format="color" />
+        <attr name="aps_shadow_radius" format="dimension" />
+        <attr name="aps_enable_shadow_for_thumb" format="boolean" />
 
     </declare-styleable>
 

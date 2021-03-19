@@ -5,6 +5,7 @@ import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.graphics.pdf.PdfRenderer
 import android.util.AttributeSet
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -19,10 +20,7 @@ import com.lhd.demo.pdfview.fragments.ItemPdfPageFragment
 import com.lhd.demo.pdfview.model.PageData
 import com.lhd.demo.pdfview.utils.PdfUtils
 import com.lhd.demo.pdfview.utils.ViewUtils.set
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileNotFoundException
 import kotlin.math.roundToInt
@@ -68,12 +66,15 @@ class AndroidPdfView @JvmOverloads constructor(
     private lateinit var thumbnailRenderer: PdfRenderer
 
     private var pageThumbnail: Drawable? = null
+    private var pageThumbnailBitmap: Bitmap? = null
+    private var thumbnailIndex = -1
 
     private val paintThumbnail by lazy {
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
         }
     }
+    private var thumbnailShadowColor = Color.GRAY
 
     private var thumbnailEnable = true
 
@@ -88,11 +89,15 @@ class AndroidPdfView @JvmOverloads constructor(
             pageData.pageBoundaries =
                 ta.getDimensionPixelSize(R.styleable.AndroidPdfView_apdf_page_boundaries, 0)
             setBoundariesPadding(pageData.pageBoundaries)
+            pageData.horizontalDivider =
+                ta.getBoolean(R.styleable.AndroidPdfView_apdf_horizontal_divider_for_page, false)
 
             extraMarginHorizontalOfVerticalPage = ta.getDimensionPixelSize(
                 R.styleable.AndroidPdfView_apdf_vertical_page_extra_margin_horizontal,
                 0
             )
+            thumbnailShadowColor =
+                ta.getColor(R.styleable.AndroidPdfView_apdf_thumbnail_shadow_color, Color.GRAY)
 
             ta.recycle()
         }
@@ -171,9 +176,13 @@ class AndroidPdfView @JvmOverloads constructor(
         val rv: RecyclerView = pager.getChildAt(0) as RecyclerView
         rv.clipToPadding = false
         this.pageData.pageBoundaries = padding
-        if (getPageOrientation() == Orientation.VERTICAL)
-            rv.setPadding(0, pageData.pageBoundaries, 0, pageData.pageBoundaries)
-        else
+        if (getPageOrientation() == Orientation.VERTICAL) {
+            val ratio = 2 * height.toFloat() / width
+            rv.setPadding(
+                0, (pageData.pageBoundaries * ratio).roundToInt(), 0,
+                (pageData.pageBoundaries * ratio).roundToInt()
+            )
+        } else
             rv.setPadding(pageData.pageBoundaries, 0, pageData.pageBoundaries, 0)
     }
 
@@ -187,7 +196,7 @@ class AndroidPdfView @JvmOverloads constructor(
             pager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
         }
         setBoundariesPadding(pageData.pageBoundaries)
-        pagerAdapter.notifyDataSetChanged()
+        pager.adapter = pagerAdapter
         validateOrientationWithSeekBar()
         pager.layoutParams =
             (pager.layoutParams as MarginLayoutParams).apply {
@@ -217,6 +226,22 @@ class AndroidPdfView @JvmOverloads constructor(
     }
 
     private fun getPageThumbnailBitmap(index: Int): Bitmap? {
+        val bitmap = if (thumbnailIndex == -1) {
+            thumbnailIndex = index
+            generateThumbnailByIndex(index)
+        } else {
+            if (thumbnailIndex != index || pageThumbnailBitmap == null) {
+                thumbnailIndex = index
+                generateThumbnailByIndex(index)
+            } else {
+                pageThumbnailBitmap
+            }
+
+        }
+        return bitmap
+    }
+
+    private fun generateThumbnailByIndex(index: Int): Bitmap? {
         val pdfRenderer = if (::thumbnailRenderer.isInitialized) {
             thumbnailRenderer
         } else {
@@ -234,7 +259,7 @@ class AndroidPdfView @JvmOverloads constructor(
             right = bitmap.width - left
             bottom = bitmap.height - top
         }
-        paintThumbnail.setShadowLayer(rectBackground.left, 0f, 0f, Color.BLACK)
+        paintThumbnail.setShadowLayer(rectBackground.left, 0f, 0f, thumbnailShadowColor)
         canvas.drawRect(rectBackground, paintThumbnail)
         page.render(bitmap, null, Matrix().apply {
             setTranslate(0.01f * bitmap.width, 0.01f * bitmap.height)
@@ -318,12 +343,16 @@ class AndroidPdfView @JvmOverloads constructor(
     //region action
 
     fun showPageThumbnail(index: Int) {
-        pageThumbnail = getPageThumbnailBitmap(index)?.toDrawable(resources)
+        pageThumbnailBitmap = getPageThumbnailBitmap(index)
+        pageThumbnail = pageThumbnailBitmap?.toDrawable(resources)
         postInvalidate()
     }
 
     fun clearPageThumbnail() {
         pageThumbnail = null
+        pageThumbnailBitmap?.recycle()
+        pageThumbnailBitmap = null
+        thumbnailIndex = -1
         invalidate()
     }
 

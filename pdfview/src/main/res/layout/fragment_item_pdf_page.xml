@@ -20,4 +20,13 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="ContentDescription" />
 
+    <View
+        android:id="@+id/horizontalDivider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="#20000000"
+        app:layout_constraintBottom_toBottomOf="@id/imgPdf"
+        app:layout_constraintEnd_toEndOf="@id/imgPdf"
+        app:layout_constraintStart_toStartOf="@id/imgPdf" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

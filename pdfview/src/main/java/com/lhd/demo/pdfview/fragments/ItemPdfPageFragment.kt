@@ -90,6 +90,8 @@ class ItemPdfPageFragment : Fragment() {
                     }
                 }
         }
+        requireView().findViewById<View>(R.id.horizontalDivider)?.visibility =
+            if (pageData.horizontalDivider && pageData.pageOrientation == AndroidPdfView.Orientation.VERTICAL) View.VISIBLE else View.GONE
         loadBitmapByPath()
     }
 

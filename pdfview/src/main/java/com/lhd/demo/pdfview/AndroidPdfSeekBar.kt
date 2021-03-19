@@ -36,6 +36,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
     private val paintThumb = Paint(Paint.ANTI_ALIAS_FLAG)
     private var thumbDrawable: Drawable? = null
     private val rectThumb = Rect()
+    private var isEnableThumbShadow = false
 
     /**
      * View Value
@@ -95,7 +96,10 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
             paintProgress.color =
                 ta.getColor(R.styleable.AndroidPdfSeekBar_aps_progress_color, Color.GREEN)
             paintProgress.strokeWidth =
-                ta.getDimension(R.styleable.AndroidPdfSeekBar_aps_bar_height, paintBar.strokeWidth)
+                ta.getDimension(
+                    R.styleable.AndroidPdfSeekBar_aps_progress_height,
+                    paintBar.strokeWidth
+                )
             paintProgress.strokeCap = Paint.Cap.ROUND
 
 
@@ -122,6 +126,15 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
             thumbHeight =
                 ta.getDimension(R.styleable.AndroidPdfSeekBar_aps_thumb_width, dpToPx(20f))
             thumbDrawable = ta.getDrawable(R.styleable.AndroidPdfSeekBar_aps_thumb)
+            isEnableThumbShadow =
+                ta.getBoolean(R.styleable.AndroidPdfSeekBar_aps_enable_shadow_for_thumb, false)
+
+            val shadowColor =
+                ta.getColor(R.styleable.AndroidPdfSeekBar_aps_shadow_color, Color.GRAY)
+            val shadowRadius = ta.getDimension(R.styleable.AndroidPdfSeekBar_aps_shadow_radius, 0f)
+            paintBar.setShadowLayer(shadowRadius, 0f, 0f, shadowColor)
+            paintThumb.setShadowLayer(shadowRadius, 0f, 0f, shadowColor)
+            paintThumb.color = shadowColor
 
             currentPage = ta.getInteger(R.styleable.AndroidPdfSeekBar_aps_current_page, 0).toFloat()
             totalPage = ta.getInteger(R.styleable.AndroidPdfSeekBar_aps_total_page, 100).toFloat()
@@ -234,8 +247,11 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
     }
 
     private fun drawThumb(canvas: Canvas) {
+        if (isEnableThumbShadow) {
+            canvas.drawOval(RectF(rectThumb), paintThumb)
+        }
         thumbDrawable?.let { thumbDrawable ->
-            thumbDrawable.bounds = rectThumb
+            thumbDrawable.bounds = Rect(rectThumb)
             thumbDrawable.draw(canvas)
         }
     }
@@ -296,7 +312,13 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         when (event?.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                currentPage = event.x.PixelToProgress()
+                currentPage = if (orientation == Orientation.HORIZONTAL) event.x.PixelToProgress()
+                else event.y.PixelToProgress()
+                if (currentPage < 0) {
+                    currentPage = 0f
+                } else if (currentPage > totalPage) {
+                    currentPage = totalPage
+                }
                 pointDown.set(event.x, event.y)
                 validateThumbWithProgress()
                 postInvalidate()
@@ -304,15 +326,19 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
+
                 val disX: Float = event.x - pointDown.x
+                val disY: Float = event.y - pointDown.y
                 return if (isThumbMoving) {
-                    moveThumb(disX)
+                    moveThumb(disX, disY)
                     pointDown.set(event.x, event.y)
                     postInvalidate()
                     getPdfView()?.showPageThumbnail(currentPage.toInt())
                     true
                 } else {
-                    if (abs(disX) >= touchSlop) {
+                    val distanceMove =
+                        if (orientation == Orientation.HORIZONTAL) abs(disX) else abs(disY)
+                    if (distanceMove >= touchSlop) {
                         isThumbMoving = true
                         pointDown.set(event.x, event.y)
                         true
@@ -329,17 +355,30 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
         return super.onTouchEvent(event)
     }
 
-    private fun moveThumb(disX: Float) {
-        val minX = rectView.left
-        val maxX = rectView.right
-        val newCenterX = when {
-            rectThumb.centerX() + disX < minX -> minX
-            rectThumb.centerX() + disX > maxX -> maxX
-            else -> rectThumb.centerX() + disX
+    private fun moveThumb(disX: Float, disY: Float) {
+        if (orientation == Orientation.HORIZONTAL) {
+            val minX = rectView.left
+            val maxX = rectView.right
+            val newCenterX = when {
+                rectThumb.centerX() + disX < minX -> minX
+                rectThumb.centerX() + disX > maxX -> maxX
+                else -> rectThumb.centerX() + disX
+            }
+            rectThumb.left = (newCenterX - thumbWidth / 2f).roundToInt()
+            rectThumb.right = (newCenterX + thumbWidth / 2f).roundToInt()
+            currentPage = rectThumb.centerX().PixelToProgress()
+        } else {
+            val minY = rectView.top
+            val maxY = rectView.bottom
+            val newCenterY = when {
+                rectThumb.centerY() + disY < minY -> minY
+                rectThumb.centerY() + disY > maxY -> maxY
+                else -> rectThumb.centerY() + disY
+            }
+            rectThumb.top = (newCenterY - thumbWidth / 2f).roundToInt()
+            rectThumb.bottom = (newCenterY + thumbWidth / 2f).roundToInt()
+            currentPage = rectThumb.centerY().PixelToProgress()
         }
-        rectThumb.left = (newCenterX - thumbWidth / 2f).roundToInt()
-        rectThumb.right = (newCenterX + thumbWidth / 2f).roundToInt()
-        currentPage = rectThumb.centerX().PixelToProgress()
     }
 
     /**
@@ -349,7 +388,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
     fun getOrientation() = orientation
 
     fun setTotalPage(totalPage: Int) {
-        this.totalPage = totalPage.toFloat()
+        this.totalPage = (totalPage - 1).toFloat()
         currentPage = 0f
         postInvalidate()
     }
