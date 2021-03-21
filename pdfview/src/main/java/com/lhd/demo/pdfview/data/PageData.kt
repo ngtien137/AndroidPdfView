@@ -1,4 +1,4 @@
-package com.lhd.demo.pdfview.model
+package com.lhd.demo.pdfview.data
 
 import com.lhd.demo.pdfview.AndroidPdfView
 

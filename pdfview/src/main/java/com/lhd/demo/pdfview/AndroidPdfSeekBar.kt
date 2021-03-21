@@ -4,12 +4,16 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
+import android.os.Build
+import android.text.Layout
+import android.text.StaticLayout
 import android.text.TextPaint
 import android.util.AttributeSet
+import android.util.Log
+import android.util.Size
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
-import androidx.core.graphics.drawable.toDrawable
 import com.lhd.demo.pdfview.utils.ViewUtils.dpToPx
 import com.lhd.demo.pdfview.utils.ViewUtils.getAppTypeFace
 import com.lhd.demo.pdfview.utils.ViewUtils.set
@@ -43,8 +47,10 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
      * Indicator
      */
     private var indicatorMode = IndicatorMode.INSIDE_THUMB
-    private var rectTextIndicator = RectF()
-    private var paintText = TextPaint(Paint.ANTI_ALIAS_FLAG)
+    private var rectTextIndicator = Rect()
+    private var paintText = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
+    }
 
     /**
      * View Value
@@ -143,7 +149,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
             paintThumb.color = shadowColor
 
             paintText.textSize =
-                ta.getDimension(R.styleable.AndroidPdfSeekBar_aps_indicator_text_size, 10f)
+                ta.getDimension(R.styleable.AndroidPdfSeekBar_aps_indicator_text_size, 20f)
             val fontId = ta.getResourceId(R.styleable.AndroidPdfSeekBar_aps_indicator_text_font, -1)
             if (fontId != -1) {
                 paintText.typeface = context.getAppTypeFace(fontId)
@@ -219,6 +225,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
             drawBar(canvas)
             drawProgress(canvas)
             drawThumb(canvas)
+            drawTextIndicator(canvas)
         }
     }
 
@@ -270,6 +277,39 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
             thumbDrawable.bounds = Rect(rectThumb)
             thumbDrawable.draw(canvas)
         }
+    }
+
+    private fun drawTextIndicator(canvas: Canvas) {
+        val textPage = currentPage.toInt().toString() + "xx"
+        paintText.getTextBounds(textPage, 0, textPage.length, rectTextIndicator)
+        //val textSize = calculateTextSize(textPage)
+        val textWidth = paintText.measureText(textPage)
+        val thumbWidthScale = thumbWidth * 0.7f
+        val thumbHeightScale = thumbHeight * 0.7f
+        if (textWidth > thumbWidthScale) {
+            val ratio = thumbWidthScale / textWidth
+            val bitmapText = Bitmap.createBitmap(
+                textWidth.roundToInt(),
+                (thumbHeightScale / ratio).roundToInt(), Bitmap.Config.ARGB_8888
+            )
+            val canvasText = Canvas(bitmapText)
+            val textX = bitmapText.width / 2f
+            val textY = bitmapText.height / 2f + rectTextIndicator.height() / 2f
+            canvasText.drawText(textPage, textX, textY, paintText)
+            val scaleBitmapText = Bitmap.createScaledBitmap(
+                bitmapText,
+                (bitmapText.width * ratio).roundToInt(),
+                (bitmapText.height * ratio).roundToInt(), true
+            )
+            val textBitmapX = rectThumb.centerX() - scaleBitmapText.width / 2f
+            val textBitmapY = rectThumb.centerY() - scaleBitmapText.height / 2f
+            canvas.drawBitmap(scaleBitmapText, textBitmapX, textBitmapY, Paint())
+        } else {
+            val textX = rectThumb.centerX().toFloat()
+            val textY = rectThumb.centerY() + rectTextIndicator.height() / 2f
+            canvas.drawText(textPage, textX, textY, paintText)
+        }
+
     }
 
     private fun getPdfView(): AndroidPdfView? {

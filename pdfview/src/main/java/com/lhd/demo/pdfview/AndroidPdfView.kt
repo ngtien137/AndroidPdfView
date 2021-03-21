@@ -9,7 +9,6 @@ import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.drawable.toDrawable
@@ -20,7 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.lhd.demo.pdfview.adapter.PagerAdapter
 import com.lhd.demo.pdfview.fragments.ItemPdfPageFragment
-import com.lhd.demo.pdfview.model.PageData
+import com.lhd.demo.pdfview.data.PageData
 import com.lhd.demo.pdfview.utils.PdfUtils
 import com.lhd.demo.pdfview.utils.ViewUtils.set
 import kotlinx.coroutines.CoroutineScope
