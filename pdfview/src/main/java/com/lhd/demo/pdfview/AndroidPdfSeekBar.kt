@@ -4,13 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
-import android.os.Build
-import android.text.Layout
-import android.text.StaticLayout
 import android.text.TextPaint
 import android.util.AttributeSet
-import android.util.Log
-import android.util.Size
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -280,7 +275,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
     }
 
     private fun drawTextIndicator(canvas: Canvas) {
-        val textPage = currentPage.toInt().toString() + "xx"
+        val textPage = currentPage.toInt().toString()
         paintText.getTextBounds(textPage, 0, textPage.length, rectTextIndicator)
         //val textSize = calculateTextSize(textPage)
         val textWidth = paintText.measureText(textPage)

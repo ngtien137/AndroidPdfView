@@ -4,9 +4,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.lhd.demo.pdfview.utils.FileChooser
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -48,8 +50,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun choosePdf() {
-        if (File(PATH_PDF).exists()) {
-            changeToScreenReader(PATH_PDF)
+        startChoosePdf()
+    }
+
+    private fun changeToScreenReaderWithCheck(path: String) {
+        if (File(path).exists()) {
+            changeToScreenReader(path)
         } else {
             Toast.makeText(this, "File not exist, please change path in code", Toast.LENGTH_SHORT)
                 .show()
@@ -60,6 +66,39 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, ReaderActivity::class.java)
         intent.putExtra(ReaderActivity.EXTRA_PDF_PATH, path)
         startActivity(intent)
+    }
+
+    fun startChoosePdf() {
+        val intentPDF = Intent(Intent.ACTION_GET_CONTENT)
+        intentPDF.type = "application/pdf"
+        intentPDF.addCategory(Intent.CATEGORY_OPENABLE)
+        startActivityForResult(
+            Intent.createChooser(intentPDF, "Select PDF"),
+            REQUEST_PDF
+        )
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            REQUEST_PDF -> {
+                data?.data?.also {
+                    Log.e("FILE URI:", " ${it.path}")
+                    try {
+                        val path = FileChooser.getPath(this, it)
+                        Log.e("FILE PATH:", " $path")
+                        changeToScreenReaderWithCheck(path)
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            this,
+                            "This file can not be open, please choose other file",
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                    }
+                }
+            }
+        }
     }
 
 }

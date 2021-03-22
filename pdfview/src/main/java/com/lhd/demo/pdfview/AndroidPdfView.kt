@@ -5,14 +5,17 @@ import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.graphics.pdf.PdfRenderer
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.children
+import androidx.core.view.marginTop
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
@@ -20,6 +23,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.lhd.demo.pdfview.adapter.PagerAdapter
 import com.lhd.demo.pdfview.fragments.ItemPdfPageFragment
 import com.lhd.demo.pdfview.data.PageData
+import com.lhd.demo.pdfview.utils.FileChooser
 import com.lhd.demo.pdfview.utils.PdfUtils
 import com.lhd.demo.pdfview.utils.ViewUtils.set
 import kotlinx.coroutines.CoroutineScope
@@ -46,6 +50,10 @@ class AndroidPdfView @JvmOverloads constructor(
     private val listPagerFragments by lazy {
         ArrayList<ItemPdfPageFragment>()
     }
+
+    var loadingListener: LoadingListener? = null
+
+    var pageListener: PageListener? = null
 
     private lateinit var pdfRenderer: PdfRenderer
 
@@ -149,6 +157,7 @@ class AndroidPdfView @JvmOverloads constructor(
                 startHandlerSeekBar()
                 getVerticalPdfSeekBar()?.setCurrentPage(currentPageIndex)
                 getHorizontalPdfSeekBar()?.setCurrentPage(currentPageIndex)
+                pageListener?.onPageChanged(position)
             }
         })
     }
@@ -180,7 +189,25 @@ class AndroidPdfView @JvmOverloads constructor(
         }
     }
 
+    fun load(uri: Uri, activity: AppCompatActivity) {
+        load(uri, activity.supportFragmentManager, activity.lifecycle, activity)
+    }
+
+    fun load(uri: Uri, fragmentManager: FragmentManager, lifecycle: Lifecycle, context: Context) {
+        try {
+            this.pdfPath = FileChooser.getPath(context, uri)
+            load(this.pdfPath, fragmentManager, lifecycle)
+        } catch (e: Exception) {
+            loadingListener?.onLoadPdfCompleted(false)
+        }
+    }
+
+    fun load(path: String, activity: AppCompatActivity) {
+        load(path, activity.supportFragmentManager, activity.lifecycle)
+    }
+
     fun load(path: String, fragmentManager: FragmentManager, lifecycle: Lifecycle) {
+        loadingListener?.onLoadPdfStarted()
         this.pdfPath = path
         val file = File(path)
         if (!file.exists()) {
@@ -214,6 +241,7 @@ class AndroidPdfView @JvmOverloads constructor(
                 pager.offscreenPageLimit = PAGE_OFFSET_LIMIT - 2
                 pagerAdapter = PagerAdapter(listPagerFragments, fragmentManager, lifecycle)
                 pager.adapter = pagerAdapter
+                loadingListener?.onLoadPdfCompleted(true)
             }
         }
     }
@@ -359,10 +387,10 @@ class AndroidPdfView @JvmOverloads constructor(
                 val thumbnailWidth = width / 3
                 val thumbnailHeight = (thumbnailWidth * 297f / 210).toInt()
                 var centerY = (seekBarTop - thumbnailHeight / 2f).toInt()
-                var centerX = seekBarCenterThumbX.toInt()
+                var centerX = (seekBarLeft + seekBarCenterThumbX).toInt()
                 if (getPageOrientation() == Orientation.VERTICAL) {
                     centerX = (seekBarLeft - thumbnailWidth / 2f).toInt()
-                    centerY = (seekBarCenterThumbY).toInt()
+                    centerY = (seekBarTop + seekBarCenterThumbY).toInt()
                 }
 
                 if (centerX < thumbnailWidth / 2f)
@@ -430,6 +458,17 @@ class AndroidPdfView @JvmOverloads constructor(
         }
     }
 
+    fun getPageCount() = listPagerFragments.size
+
+    //endregion
+
+    //region SeekBar Listener
+    override fun onPageSelectedChanged(pageIndex: Int, isSelectedByTouch: Boolean) {
+        if (isSelectedByTouch) {
+            pager.setCurrentItem(pageIndex, false)
+        }
+    }
+
     //endregion
 
     //region inner class
@@ -442,13 +481,13 @@ class AndroidPdfView @JvmOverloads constructor(
         HIDDEN(-1), VISIBLE(0), SHOW_WHEN_SCROLL(1)
     }
 
-    //endregion
+    interface PageListener {
+        fun onPageChanged(pageIndex: Int)
+    }
 
-    //region SeekBar Listener
-    override fun onPageSelectedChanged(pageIndex: Int, isSelectedByTouch: Boolean) {
-        if (isSelectedByTouch) {
-            pager.setCurrentItem(pageIndex, false)
-        }
+    interface LoadingListener {
+        fun onLoadPdfStarted()
+        fun onLoadPdfCompleted(success: Boolean)
     }
 
     //endregion
