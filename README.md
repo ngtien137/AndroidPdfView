@@ -20,7 +20,7 @@ dependencies {
   implementation 'com.github.ngtien137:AndroidPdfView:TAG'
 }
 ```
-* You can get version of this module [here](https://jitpack.io/#ngtien137AndroidPdfView)
+* You can get version of this module [here](https://jitpack.io/#ngtien137/AndroidPdfView)
 ## All Attributes 
 * Components:
 ![alt text](https://github.com/ngtien137/AndroidPdfView/blob/main/resources/img_demo.png) 
