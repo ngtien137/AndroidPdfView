@@ -2,7 +2,7 @@
 # AndroidPdfView
 Android Pdf Reader with PDFRenderer Android (API >=21)
 ## Preview 
-![alt text](https://github.com/ngtien137/AndroidPdfView/blob/master/resources/preview.gif) 
+![alt text](https://github.com/ngtien137/AndroidPdfView/blob/main/resources/preview.gif) 
 ### Configure build.gradle (Project)
 * Add these lines:
 ```gradle
@@ -23,7 +23,7 @@ dependencies {
 * You can get version of this module [here](https://jitpack.io/#ngtien137AndroidPdfView)
 ## All Attributes 
 * Components:
-![alt text](https://github.com/ngtien137/AndroidPdfView/blob/master/resources/img_demo.png) 
+![alt text](https://github.com/ngtien137/AndroidPdfView/blob/main/resources/img_demo.png) 
 * All attributes
 ```xml
 <declare-styleable name="AndroidPdfView">
