@@ -131,7 +131,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
 
             thumbWidth = ta.getDimension(R.styleable.AndroidPdfSeekBar_aps_thumb_width, dpToPx(20f))
             thumbHeight =
-                ta.getDimension(R.styleable.AndroidPdfSeekBar_aps_thumb_width, dpToPx(20f))
+                ta.getDimension(R.styleable.AndroidPdfSeekBar_aps_thumb_height, dpToPx(20f))
             thumbDrawable = ta.getDrawable(R.styleable.AndroidPdfSeekBar_aps_thumb)
             isEnableThumbShadow =
                 ta.getBoolean(R.styleable.AndroidPdfSeekBar_aps_enable_shadow_for_thumb, false)
@@ -426,8 +426,8 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
                 rectThumb.centerY() + disY > maxY -> maxY
                 else -> rectThumb.centerY() + disY
             }
-            rectThumb.top = (newCenterY - thumbWidth / 2f).roundToInt()
-            rectThumb.bottom = (newCenterY + thumbWidth / 2f).roundToInt()
+            rectThumb.top = (newCenterY - thumbHeight / 2f).roundToInt()
+            rectThumb.bottom = (newCenterY + thumbHeight / 2f).roundToInt()
             currentPage = rectThumb.centerY().PixelToProgress()
         }
     }
