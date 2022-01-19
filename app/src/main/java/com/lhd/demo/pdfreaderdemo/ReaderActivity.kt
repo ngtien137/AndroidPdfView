@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
 import com.lhd.demo.pdfview.AndroidPdfView
 
 
@@ -43,11 +44,13 @@ class ReaderActivity : AppCompatActivity(), AndroidPdfView.PageListener,
     }
 
     private fun changeOrientation() {
+        val currentPage = androidPdfView.getCurrentPageIndex()
         if (androidPdfView.getPageOrientation() == AndroidPdfView.Orientation.VERTICAL) {
             androidPdfView.setPageOrientation(AndroidPdfView.Orientation.HORIZONTAL)
         } else {
             androidPdfView.setPageOrientation(AndroidPdfView.Orientation.VERTICAL)
         }
+        androidPdfView.setCurrentPage(currentPage)
     }
 
     override fun onPageChanged(pageIndex: Int) {

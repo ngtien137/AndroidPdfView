@@ -377,7 +377,7 @@ class AndroidPdfView @JvmOverloads constructor(
     //region draw
 
     override fun dispatchDraw(canvas: Canvas?) {
-        try{
+        try {
             super.dispatchDraw(canvas)
             if (thumbnailEnable && pageThumbnail != null) {
                 canvas?.let {
@@ -414,15 +414,15 @@ class AndroidPdfView @JvmOverloads constructor(
                     pageThumbnail?.draw(canvas)
                 }
             }
-        }catch (e:RuntimeException){
+        } catch (e: RuntimeException) {
 
         }
     }
 
     override fun onDraw(canvas: Canvas?) {
-        try{
+        try {
             super.onDraw(canvas)
-        }catch (e:RuntimeException){
+        } catch (e: RuntimeException) {
 
         }
     }
@@ -472,6 +472,12 @@ class AndroidPdfView @JvmOverloads constructor(
     }
 
     fun getPageCount() = listPagerFragments.size
+
+    fun getCurrentPageIndex() = pager.currentItem
+
+    fun setCurrentPage(pageIndex: Int, smooth: Boolean = false) {
+        pager.setCurrentItem(pageIndex, smooth)
+    }
 
     //endregion
 
