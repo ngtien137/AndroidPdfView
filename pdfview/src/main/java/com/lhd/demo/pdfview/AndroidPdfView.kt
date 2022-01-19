@@ -32,6 +32,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileNotFoundException
+import java.lang.RuntimeException
 import kotlin.math.roundToInt
 
 @SuppressLint("ClickableViewAccessibility")
@@ -376,41 +377,53 @@ class AndroidPdfView @JvmOverloads constructor(
     //region draw
 
     override fun dispatchDraw(canvas: Canvas?) {
-        super.dispatchDraw(canvas)
-        if (thumbnailEnable && pageThumbnail != null) {
-            canvas?.let {
-                val seekBar = getPdfSeekBar()
-                val seekBarTop = seekBar?.y ?: 0f
-                val seekBarLeft = seekBar?.x ?: 0f
-                val seekBarCenterThumbX = seekBar?.getCenterThumbX()?.toFloat() ?: 0f
-                val seekBarCenterThumbY = seekBar?.getCenterThumbY()?.toFloat() ?: 0f
-                val thumbnailWidth = width / 3
-                val thumbnailHeight = (thumbnailWidth * 297f / 210).toInt()
-                var centerY = (seekBarTop - thumbnailHeight / 2f).toInt()
-                var centerX = (seekBarLeft + seekBarCenterThumbX).toInt()
-                if (getPageOrientation() == Orientation.VERTICAL) {
-                    centerX = (seekBarLeft - thumbnailWidth / 2f).toInt()
-                    centerY = (seekBarTop + seekBarCenterThumbY).toInt()
-                }
+        try{
+            super.dispatchDraw(canvas)
+            if (thumbnailEnable && pageThumbnail != null) {
+                canvas?.let {
+                    val seekBar = getPdfSeekBar()
+                    val seekBarTop = seekBar?.y ?: 0f
+                    val seekBarLeft = seekBar?.x ?: 0f
+                    val seekBarCenterThumbX = seekBar?.getCenterThumbX()?.toFloat() ?: 0f
+                    val seekBarCenterThumbY = seekBar?.getCenterThumbY()?.toFloat() ?: 0f
+                    val thumbnailWidth = width / 3
+                    val thumbnailHeight = (thumbnailWidth * 297f / 210).toInt()
+                    var centerY = (seekBarTop - thumbnailHeight / 2f).toInt()
+                    var centerX = (seekBarLeft + seekBarCenterThumbX).toInt()
+                    if (getPageOrientation() == Orientation.VERTICAL) {
+                        centerX = (seekBarLeft - thumbnailWidth / 2f).toInt()
+                        centerY = (seekBarTop + seekBarCenterThumbY).toInt()
+                    }
 
-                if (centerX < thumbnailWidth / 2f)
-                    centerX = thumbnailWidth / 2
-                else if (centerX > width - thumbnailWidth / 2f)
-                    centerX = (width - thumbnailWidth / 2f).roundToInt()
-                if (centerY < thumbnailHeight / 2f)
-                    centerY = thumbnailHeight / 2
-                else if (centerY > height - thumbnailHeight / 2f)
-                    centerY = (height - thumbnailHeight / 2f).roundToInt()
-                pageThumbnail!!.bounds = Rect().also {
-                    it.set(
-                        centerX - thumbnailWidth / 2f,
-                        centerY - thumbnailHeight / 2f,
-                        centerX + thumbnailWidth / 2f,
-                        centerY + thumbnailHeight / 2f
-                    )
+                    if (centerX < thumbnailWidth / 2f)
+                        centerX = thumbnailWidth / 2
+                    else if (centerX > width - thumbnailWidth / 2f)
+                        centerX = (width - thumbnailWidth / 2f).roundToInt()
+                    if (centerY < thumbnailHeight / 2f)
+                        centerY = thumbnailHeight / 2
+                    else if (centerY > height - thumbnailHeight / 2f)
+                        centerY = (height - thumbnailHeight / 2f).roundToInt()
+                    pageThumbnail!!.bounds = Rect().also {
+                        it.set(
+                            centerX - thumbnailWidth / 2f,
+                            centerY - thumbnailHeight / 2f,
+                            centerX + thumbnailWidth / 2f,
+                            centerY + thumbnailHeight / 2f
+                        )
+                    }
+                    pageThumbnail?.draw(canvas)
                 }
-                pageThumbnail?.draw(canvas)
             }
+        }catch (e:RuntimeException){
+
+        }
+    }
+
+    override fun onDraw(canvas: Canvas?) {
+        try{
+            super.onDraw(canvas)
+        }catch (e:RuntimeException){
+
         }
     }
 
