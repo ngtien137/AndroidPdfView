@@ -57,7 +57,7 @@ class ReaderActivity : AppCompatActivity(), AndroidPdfView.PageListener,
         toast?.cancel()
         toast = Toast.makeText(
             this,
-            "Page: $pageIndex/${androidPdfView.getPageCount()}",
+            "Page: ${(pageIndex+1)}/${androidPdfView.getPageCount()}",
             Toast.LENGTH_SHORT
         )
         toast?.show()

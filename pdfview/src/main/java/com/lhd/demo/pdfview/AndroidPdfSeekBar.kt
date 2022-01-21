@@ -275,7 +275,7 @@ class AndroidPdfSeekBar @JvmOverloads constructor(
     }
 
     private fun drawTextIndicator(canvas: Canvas) {
-        val textPage = currentPage.toInt().toString()
+        val textPage = (currentPage+1).toInt().toString()
         paintText.getTextBounds(textPage, 0, textPage.length, rectTextIndicator)
         //val textSize = calculateTextSize(textPage)
         val textWidth = paintText.measureText(textPage)
